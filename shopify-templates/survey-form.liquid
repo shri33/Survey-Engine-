@@ -1,0 +1,554 @@
+{% comment %}
+  Survey Form Template
+  This template loads the Vue.js survey engine for displaying and collecting survey responses
+  
+  URL Parameters Expected:
+  - survey: Survey ID (required)
+  - lang: Language code (en, es, fr, etc.)
+  - session: Unique session identifier
+  - user: Optional user identifier
+{% endcomment %}
+
+{% assign survey_id = request.param.survey %}
+{% assign language = request.param.lang | default: 'en' %}
+{% assign session_id = request.param.session %}
+{% assign user_id = request.param.user %}
+
+<!DOCTYPE html>
+<html lang="{{ language }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {% case language %}
+            {% when 'es' %}
+                Encuesta - {{ shop.name }}
+            {% when 'fr' %}
+                Enquête - {{ shop.name }}
+            {% else %}
+                Survey - {{ shop.name }}
+        {% endcase %}
+    </title>
+    
+    <!-- Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <!-- Custom Styles -->
+    <style>
+        .survey-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem 0;
+        }
+        
+        .survey-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .survey-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .survey-content {
+            padding: 2rem;
+        }
+        
+        .question-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .question-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+        
+        .question-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .required-indicator {
+            color: #e74c3c;
+            margin-left: 0.25rem;
+        }
+        
+        .progress-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 2rem;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c66;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .success-message {
+            background: #efe;
+            border: 1px solid #cfc;
+            color: #6c6;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="survey-container">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-8-desktop is-10-tablet">
+                    <div class="survey-card">
+                        <div class="survey-header">
+                            <h1 class="title is-3 has-text-white">
+                                {% case language %}
+                                    {% when 'es' %}
+                                        Encuesta
+                                    {% when 'fr' %}
+                                        Enquête
+                                    {% else %}
+                                        Survey
+                                {% endcase %}
+                            </h1>
+                            <p class="subtitle is-5 has-text-white-ter">
+                                {% case language %}
+                                    {% when 'es' %}
+                                        Sus comentarios son importantes para nosotros
+                                    {% when 'fr' %}
+                                        Vos commentaires sont importants pour nous
+                                    {% else %}
+                                        Your feedback is important to us
+                                {% endcase %}
+                            </p>
+                        </div>
+                        
+                        <div class="survey-content">
+                            <!-- Vue.js App Mount Point -->
+                            <div id="survey-app">
+                                <!-- Loading State -->
+                                <div class="loading-spinner">
+                                    <div class="spinner"></div>
+                                    <p>
+                                        {% case language %}
+                                            {% when 'es' %}
+                                                Cargando encuesta...
+                                            {% when 'fr' %}
+                                                Chargement de l'enquête...
+                                            {% else %}
+                                                Loading survey...
+                                        {% endcase %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js';
+        
+        // Firebase configuration - Update with your config
+        const firebaseConfig = {
+            apiKey: "{{ settings.firebase_api_key }}",
+            authDomain: "{{ settings.firebase_auth_domain }}",
+            projectId: "{{ settings.firebase_project_id }}",
+            storageBucket: "{{ settings.firebase_storage_bucket }}",
+            messagingSenderId: "{{ settings.firebase_messaging_sender_id }}",
+            appId: "{{ settings.firebase_app_id }}"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Survey configuration
+        window.surveyConfig = {
+            surveyId: "{{ survey_id }}",
+            language: "{{ language }}",
+            sessionId: "{{ session_id }}",
+            userId: "{{ user_id }}",
+            shopName: "{{ shop.name }}",
+            returnUrl: "{{ shop.url }}/pages/survey-thank-you?survey={{ survey_id }}&lang={{ language }}&session={{ session_id }}"
+        };
+        
+        window.firebaseDb = db;
+    </script>
+    
+    <!-- Vue.js 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <!-- Survey Engine JavaScript -->
+    <script>
+        const { createApp, ref, onMounted, computed } = Vue;
+        
+        const SurveyApp = {
+            setup() {
+                const survey = ref(null);
+                const questions = ref([]);
+                const answers = ref({});
+                const currentQuestionIndex = ref(0);
+                const isLoading = ref(true);
+                const error = ref(null);
+                const isSubmitting = ref(false);
+                
+                const currentQuestion = computed(() => {
+                    return questions.value[currentQuestionIndex.value] || null;
+                });
+                
+                const progress = computed(() => {
+                    if (questions.value.length === 0) return 0;
+                    return Math.round(((currentQuestionIndex.value + 1) / questions.value.length) * 100);
+                });
+                
+                const canProceed = computed(() => {
+                    if (!currentQuestion.value) return false;
+                    if (currentQuestion.value.required) {
+                        const answer = answers.value[currentQuestion.value.id];
+                        return answer && answer.trim() !== '';
+                    }
+                    return true;
+                });
+                
+                const loadSurvey = async () => {
+                    try {
+                        const { collection, query, where, orderBy, getDocs, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js');
+                        
+                        // Load survey
+                        const surveyDoc = await getDoc(doc(window.firebaseDb, 'surveys', window.surveyConfig.surveyId));
+                        if (!surveyDoc.exists()) {
+                            throw new Error('Survey not found');
+                        }
+                        survey.value = { id: surveyDoc.id, ...surveyDoc.data() };
+                        
+                        // Load questions
+                        const questionsQuery = query(
+                            collection(window.firebaseDb, 'questions'),
+                            where('survey_id', '==', window.surveyConfig.surveyId),
+                            orderBy('order', 'asc')
+                        );
+                        
+                        const questionsSnapshot = await getDocs(questionsQuery);
+                        questions.value = questionsSnapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        }));
+                        
+                        isLoading.value = false;
+                    } catch (err) {
+                        console.error('Error loading survey:', err);
+                        error.value = 'Failed to load survey. Please try again.';
+                        isLoading.value = false;
+                    }
+                };
+                
+                const saveAnswer = async (questionId, value) => {
+                    try {
+                        const { collection, doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js');
+                        
+                        const answerId = `${window.surveyConfig.sessionId}_${questionId}`;
+                        await setDoc(doc(window.firebaseDb, 'answers', answerId), {
+                            id: answerId,
+                            response_id: window.surveyConfig.sessionId,
+                            question_id: questionId,
+                            answer_text: value,
+                            language: window.surveyConfig.language,
+                            created_at: serverTimestamp(),
+                            updated_at: serverTimestamp()
+                        });
+                        
+                        answers.value[questionId] = value;
+                    } catch (err) {
+                        console.error('Error saving answer:', err);
+                    }
+                };
+                
+                const nextQuestion = () => {
+                    if (currentQuestionIndex.value < questions.value.length - 1) {
+                        currentQuestionIndex.value++;
+                    } else {
+                        submitSurvey();
+                    }
+                };
+                
+                const previousQuestion = () => {
+                    if (currentQuestionIndex.value > 0) {
+                        currentQuestionIndex.value--;
+                    }
+                };
+                
+                const submitSurvey = async () => {
+                    try {
+                        isSubmitting.value = true;
+                        const { collection, doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js');
+                        
+                        // Save response record
+                        await setDoc(doc(window.firebaseDb, 'responses', window.surveyConfig.sessionId), {
+                            id: window.surveyConfig.sessionId,
+                            survey_id: window.surveyConfig.surveyId,
+                            session_id: window.surveyConfig.sessionId,
+                            user_id: window.surveyConfig.userId || null,
+                            language: window.surveyConfig.language,
+                            completed: true,
+                            created_at: serverTimestamp(),
+                            completed_at: serverTimestamp()
+                        });
+                        
+                        // Redirect to thank you page
+                        window.location.href = window.surveyConfig.returnUrl;
+                    } catch (err) {
+                        console.error('Error submitting survey:', err);
+                        error.value = 'Failed to submit survey. Please try again.';
+                        isSubmitting.value = false;
+                    }
+                };
+                
+                const getQuestionText = (question) => {
+                    return question.question_text[window.surveyConfig.language] || 
+                           question.question_text.en || 
+                           'Question text not available';
+                };
+                
+                const getPlaceholder = (question) => {
+                    if (!question.placeholder) return '';
+                    return question.placeholder[window.surveyConfig.language] || 
+                           question.placeholder.en || '';
+                };
+                
+                const getOptions = (question) => {
+                    if (!question.options) return [];
+                    return question.options[window.surveyConfig.language] || 
+                           question.options.en || [];
+                };
+                
+                onMounted(() => {
+                    loadSurvey();
+                });
+                
+                return {
+                    survey,
+                    questions,
+                    answers,
+                    currentQuestion,
+                    currentQuestionIndex,
+                    progress,
+                    isLoading,
+                    error,
+                    isSubmitting,
+                    canProceed,
+                    saveAnswer,
+                    nextQuestion,
+                    previousQuestion,
+                    getQuestionText,
+                    getPlaceholder,
+                    getOptions
+                };
+            },
+            
+            template: `
+                <div v-if="isLoading" class="loading-spinner" style="display: block;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p>Loading survey...</p>
+                </div>
+                
+                <div v-else-if="error" class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    {{ error }}
+                </div>
+                
+                <div v-else-if="currentQuestion">
+                    <!-- Progress Bar -->
+                    <div class="progress-bar">
+                        <div class="progress-fill" :style="{ width: progress + '%' }"></div>
+                    </div>
+                    
+                    <div class="has-text-centered mb-4">
+                        <span class="tag is-info">{{ currentQuestionIndex + 1 }} / {{ questions.length }}</span>
+                    </div>
+                    
+                    <!-- Question Card -->
+                    <div class="question-card">
+                        <h3 class="question-title">
+                            {{ getQuestionText(currentQuestion) }}
+                            <span v-if="currentQuestion.required" class="required-indicator">*</span>
+                        </h3>
+                        
+                        <!-- Single Line Input -->
+                        <div v-if="currentQuestion.question_type === 'single_line'">
+                            <input 
+                                type="text" 
+                                class="input form-control"
+                                :placeholder="getPlaceholder(currentQuestion)"
+                                :value="answers[currentQuestion.id] || ''"
+                                @input="saveAnswer(currentQuestion.id, $event.target.value)"
+                            >
+                        </div>
+                        
+                        <!-- Multi Line Input -->
+                        <div v-else-if="currentQuestion.question_type === 'multi_line'">
+                            <textarea 
+                                class="textarea form-control"
+                                rows="4"
+                                :placeholder="getPlaceholder(currentQuestion)"
+                                :value="answers[currentQuestion.id] || ''"
+                                @input="saveAnswer(currentQuestion.id, $event.target.value)"
+                            ></textarea>
+                        </div>
+                        
+                        <!-- Dropdown -->
+                        <div v-else-if="currentQuestion.question_type === 'dropdown'">
+                            <div class="select is-fullwidth">
+                                <select 
+                                    class="form-control"
+                                    :value="answers[currentQuestion.id] || ''"
+                                    @change="saveAnswer(currentQuestion.id, $event.target.value)"
+                                >
+                                    <option value="">Please select...</option>
+                                    <option 
+                                        v-for="option in getOptions(currentQuestion)" 
+                                        :key="option" 
+                                        :value="option"
+                                    >
+                                        {{ option }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Checkbox -->
+                        <div v-else-if="currentQuestion.question_type === 'checkbox'">
+                            <div v-for="option in getOptions(currentQuestion)" :key="option" class="field">
+                                <label class="checkbox">
+                                    <input 
+                                        type="checkbox" 
+                                        :value="option"
+                                        :checked="(answers[currentQuestion.id] || []).includes(option)"
+                                        @change="handleCheckboxChange(currentQuestion.id, option, $event.target.checked)"
+                                    >
+                                    {{ option }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation -->
+                    <div class="field is-grouped is-grouped-centered mt-5">
+                        <div class="control">
+                            <button 
+                                v-if="currentQuestionIndex > 0"
+                                class="button is-light"
+                                @click="previousQuestion"
+                            >
+                                <i class="fas fa-arrow-left"></i>
+                                <span>Previous</span>
+                            </button>
+                        </div>
+                        <div class="control">
+                            <button 
+                                class="button btn-primary"
+                                :disabled="!canProceed || isSubmitting"
+                                @click="nextQuestion"
+                            >
+                                <span v-if="isSubmitting">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    Submitting...
+                                </span>
+                                <span v-else-if="currentQuestionIndex === questions.length - 1">
+                                    <span>Submit</span>
+                                    <i class="fas fa-check"></i>
+                                </span>
+                                <span v-else>
+                                    <span>Next</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            
+            methods: {
+                handleCheckboxChange(questionId, option, checked) {
+                    let currentAnswers = this.answers[questionId] || [];
+                    if (checked) {
+                        if (!currentAnswers.includes(option)) {
+                            currentAnswers.push(option);
+                        }
+                    } else {
+                        currentAnswers = currentAnswers.filter(item => item !== option);
+                    }
+                    this.saveAnswer(questionId, currentAnswers);
+                }
+            }
+        };
+        
+        createApp(SurveyApp).mount('#survey-app');
+    </script>
+</body>
+</html>

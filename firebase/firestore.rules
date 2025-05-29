@@ -1,0 +1,110 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             (request.auth.token.admin == true || 
+              request.auth.token.role == 'admin');
+    }
+    
+    function isValidSessionId(sessionId) {
+      return sessionId is string && 
+             sessionId.size() >= 3 && 
+             sessionId.size() <= 100;
+    }
+    
+    function isValidSurveyId(surveyId) {
+      return surveyId is string && 
+             surveyId.size() >= 1 && 
+             surveyId.size() <= 255;
+    }
+    
+    // Surveys collection - Public read access, admin write
+    match /surveys/{surveyId} {
+      allow read: if isValidSurveyId(surveyId) && 
+                     resource.data.active == true;
+      allow create, update: if isAdmin();
+      allow delete: if false; // Never allow deletion to preserve data integrity
+    }
+    
+    // Questions collection - Public read access, admin write
+    match /questions/{questionId} {
+      allow read: if true; // Public read for displaying questions
+      allow create, update: if isAdmin();
+      allow delete: if false; // Never allow deletion to preserve data integrity
+    }
+    
+    // Response sessions - Allow creation by anyone, read by session owner or admin
+    match /response_sessions/{sessionId} {
+      allow create: if isValidSessionId(sessionId) &&
+                       request.resource.data.keys().hasAll(['survey_id', 'language']) &&
+                       isValidSurveyId(request.resource.data.survey_id);
+                       
+      allow read: if isValidSessionId(sessionId) &&
+                     (resource.data.id == sessionId || isAdmin());
+                     
+      allow update: if isValidSessionId(sessionId) &&
+                       resource.data.id == sessionId &&
+                       // Only allow updating completion status and timestamp
+                       request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['is_complete', 'completed_at', 'updated_at']);
+                       
+      allow delete: if isAdmin();
+    }
+    
+    // Answers collection - Allow CRUD for session participants and read for admins
+    match /answers/{answerId} {
+      allow create: if isValidSessionId(request.resource.data.session_id) &&
+                       request.resource.data.keys().hasAll(['session_id', 'question_id']) &&
+                       // Validate answer has either text or options but not both
+                       ((request.resource.data.keys().hasAny(['answer_text']) && 
+                         !request.resource.data.keys().hasAny(['answer_options'])) ||
+                        (request.resource.data.keys().hasAny(['answer_options']) && 
+                         !request.resource.data.keys().hasAny(['answer_text'])));
+      
+      allow read: if resource.data.session_id is string ||
+                     isAdmin();
+      
+      allow update: if resource.data.session_id is string &&
+                       // Only allow updating answer content and timestamp
+                       request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['answer_text', 'answer_options', 'updated_at']);
+      
+      allow delete: if isAdmin();
+    }
+    
+    // Survey statistics and analytics - Admin only
+    match /survey_stats/{statId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Admin collection for managing users and permissions
+    match /admin/{document=**} {
+      allow read, write: if isAdmin();
+    }
+    
+    // User profiles (if implementing user authentication later)
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && 
+                            request.auth.uid == userId;
+      allow read: if isAdmin();
+    }
+    
+    // System logs and debugging (admin only)
+    match /logs/{document=**} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Rate limiting collection to prevent spam
+    match /rate_limits/{ip} {
+      allow read, write: if true; // Needed for rate limiting functionality
+    }
+  }
+}

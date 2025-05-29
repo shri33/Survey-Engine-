@@ -1,0 +1,579 @@
+{% comment %}
+  Survey Thank You Template
+  This template displays a thank you message after survey completion
+  
+  URL Parameters Expected:
+  - survey: Survey ID (required)
+  - lang: Language code (en, es, fr, etc.)
+  - session: Unique session identifier
+  - user: Optional user identifier
+{% endcomment %}
+
+{% assign survey_id = request.param.survey %}
+{% assign language = request.param.lang | default: 'en' %}
+{% assign session_id = request.param.session %}
+{% assign user_id = request.param.user %}
+
+<!DOCTYPE html>
+<html lang="{{ language }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {% case language %}
+            {% when 'es' %}
+                ¡Gracias! - {{ shop.name }}
+            {% when 'fr' %}
+                Merci! - {{ shop.name }}
+            {% else %}
+                Thank You! - {{ shop.name }}
+        {% endcase %}
+    </title>
+    
+    <!-- Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <!-- Custom Styles -->
+    <style>
+        .thank-you-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .thank-you-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+        }
+        
+        .thank-you-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+        
+        .thank-you-content {
+            padding: 3rem 2rem;
+        }
+        
+        .success-icon {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+            }
+        }
+        
+        .thank-you-title {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+        
+        .thank-you-subtitle {
+            color: #7f8c8d;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        
+        .stats-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-item {
+            margin-bottom: 1rem;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .action-buttons {
+            margin-top: 2rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 50px;
+            padding: 1rem 2rem;
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid #667eea;
+            border-radius: 50px;
+            padding: 1rem 2rem;
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+        
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-3px);
+        }
+        
+        .social-share {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .social-share-title {
+            color: #6c757d;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .social-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .social-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+        
+        .social-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .social-btn.facebook { background: #3b5998; }
+        .social-btn.twitter { background: #1da1f2; }
+        .social-btn.linkedin { background: #0077b5; }
+        .social-btn.email { background: #34495e; }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #667eea;
+            animation: confetti-fall 3s linear infinite;
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                opacity: 1;
+                transform: translateY(-100vh) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(100vh) rotate(720deg);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .thank-you-content {
+                padding: 2rem 1rem;
+            }
+            
+            .thank-you-title {
+                font-size: 2rem;
+            }
+            
+            .social-buttons {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="thank-you-container">
+        <!-- Confetti Animation -->
+        <div class="confetti" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="confetti" style="left: 20%; animation-delay: 0.5s; background: #764ba2;"></div>
+        <div class="confetti" style="left: 30%; animation-delay: 1s;"></div>
+        <div class="confetti" style="left: 40%; animation-delay: 1.5s; background: #764ba2;"></div>
+        <div class="confetti" style="left: 50%; animation-delay: 2s;"></div>
+        <div class="confetti" style="left: 60%; animation-delay: 0.3s; background: #764ba2;"></div>
+        <div class="confetti" style="left: 70%; animation-delay: 0.8s;"></div>
+        <div class="confetti" style="left: 80%; animation-delay: 1.3s; background: #764ba2;"></div>
+        <div class="confetti" style="left: 90%; animation-delay: 1.8s;"></div>
+        
+        <div class="thank-you-card">
+            <div class="thank-you-content">
+                <!-- Success Icon -->
+                <div class="success-icon">
+                    <i class="fas fa-check fa-2x"></i>
+                </div>
+                
+                <!-- Thank You Message -->
+                <h1 class="thank-you-title">
+                    {% case language %}
+                        {% when 'es' %}
+                            ¡Gracias!
+                        {% when 'fr' %}
+                            Merci!
+                        {% else %}
+                            Thank You!
+                    {% endcase %}
+                </h1>
+                
+                <p class="thank-you-subtitle">
+                    {% case language %}
+                        {% when 'es' %}
+                            Hemos recibido sus respuestas. Su opinión nos ayuda a mejorar nuestros productos y servicios para servirle mejor.
+                        {% when 'fr' %}
+                            Nous avons reçu vos réponses. Vos commentaires nous aident à améliorer nos produits et services pour mieux vous servir.
+                        {% else %}
+                            We've received your responses. Your feedback helps us improve our products and services to serve you better.
+                    {% endcase %}
+                </p>
+                
+                <!-- Survey Statistics -->
+                <div class="stats-section">
+                    <div class="columns is-mobile">
+                        <div class="column">
+                            <div class="stat-item">
+                                <div class="stat-number" id="response-count">---</div>
+                                <div class="stat-label">
+                                    {% case language %}
+                                        {% when 'es' %}
+                                            Respuestas
+                                        {% when 'fr' %}
+                                            Réponses
+                                        {% else %}
+                                            Responses
+                                    {% endcase %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="stat-item">
+                                <div class="stat-number" id="completion-time">{{ "now" | date: "%M:%S" }}</div>
+                                <div class="stat-label">
+                                    {% case language %}
+                                        {% when 'es' %}
+                                            Tiempo
+                                        {% when 'fr' %}
+                                            Temps
+                                        {% else %}
+                                            Time
+                                    {% endcase %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <a href="{{ shop.url }}" class="btn-primary">
+                        <i class="fas fa-home"></i>
+                        {% case language %}
+                            {% when 'es' %}
+                                Volver a la tienda
+                            {% when 'fr' %}
+                                Retour au magasin
+                            {% else %}
+                                Back to Store
+                        {% endcase %}
+                    </a>
+                    
+                    <a href="{{ shop.url }}/pages/survey-landing?survey={{ survey_id }}&lang={{ language }}" class="btn-secondary">
+                        <i class="fas fa-redo"></i>
+                        {% case language %}
+                            {% when 'es' %}
+                                Tomar otra encuesta
+                            {% when 'fr' %}
+                                Prendre une autre enquête
+                            {% else %}
+                                Take Another Survey
+                        {% endcase %}
+                    </a>
+                </div>
+                
+                <!-- Special Offers Section -->
+                {% if settings.show_thank_you_offer %}
+                <div class="stats-section" style="background: linear-gradient(45deg, #667eea, #764ba2); color: white;">
+                    <h3 style="color: white; margin-bottom: 1rem;">
+                        {% case language %}
+                            {% when 'es' %}
+                                ¡Oferta especial para ti!
+                            {% when 'fr' %}
+                                Offre spéciale pour vous!
+                            {% else %}
+                                Special Offer for You!
+                        {% endcase %}
+                    </h3>
+                    <p style="margin-bottom: 1.5rem;">
+                        {% case language %}
+                            {% when 'es' %}
+                                Como agradecimiento por completar nuestra encuesta, disfrute de un 10% de descuento en su próxima compra.
+                            {% when 'fr' %}
+                                En remerciement d'avoir complété notre enquête, profitez de 10% de réduction sur votre prochain achat.
+                            {% else %}
+                                As a thank you for completing our survey, enjoy 10% off your next purchase.
+                        {% endcase %}
+                    </p>
+                    <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 1.2rem; font-weight: bold;">
+                        SURVEY10
+                    </div>
+                    <p style="margin-top: 0.5rem; font-size: 0.8rem; opacity: 0.8;">
+                        {% case language %}
+                            {% when 'es' %}
+                                Válido hasta {{ "now" | date: "%d/%m/%Y" | date_add: 30 }}
+                            {% when 'fr' %}
+                                Valide jusqu'au {{ "now" | date: "%d/%m/%Y" | date_add: 30 }}
+                            {% else %}
+                                Valid until {{ "now" | date: "%m/%d/%Y" | date_add: 30 }}
+                        {% endcase %}
+                    </p>
+                </div>
+                {% endif %}
+                
+                <!-- Social Share Section -->
+                <div class="social-share">
+                    <div class="social-share-title">
+                        {% case language %}
+                            {% when 'es' %}
+                                Ayude a otros a compartir sus opiniones
+                            {% when 'fr' %}
+                                Aidez les autres à partager leurs opinions
+                            {% else %}
+                                Help others share their opinions
+                        {% endcase %}
+                    </div>
+                    <div class="social-buttons">
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ shop.url | url_encode }}" 
+                           target="_blank" 
+                           class="social-btn facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://twitter.com/intent/tweet?text={{ 'Just completed a survey for ' | append: shop.name | url_encode }}&url={{ shop.url | url_encode }}" 
+                           target="_blank" 
+                           class="social-btn twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ shop.url | url_encode }}" 
+                           target="_blank" 
+                           class="social-btn linkedin">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="mailto:?subject={{ 'Survey from ' | append: shop.name | url_encode }}&body={{ 'Check out this survey: ' | append: shop.url | url_encode }}" 
+                           class="social-btn email">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Additional Information -->
+                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e9ecef; color: #6c757d; font-size: 0.9rem;">
+                    <p>
+                        {% case language %}
+                            {% when 'es' %}
+                                Sus respuestas son confidenciales y se utilizarán únicamente para mejorar nuestros servicios.
+                            {% when 'fr' %}
+                                Vos réponses sont confidentielles et ne seront utilisées que pour améliorer nos services.
+                            {% else %}
+                                Your responses are confidential and will only be used to improve our services.
+                        {% endcase %}
+                    </p>
+                    {% if session_id %}
+                    <p style="margin-top: 0.5rem; font-family: monospace; font-size: 0.8rem;">
+                        {% case language %}
+                            {% when 'es' %}
+                                ID de sesión: {{ session_id }}
+                            {% when 'fr' %}
+                                ID de session: {{ session_id }}
+                            {% else %}
+                                Session ID: {{ session_id }}
+                        {% endcase %}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js';
+        import { getFirestore, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js';
+        
+        // Firebase configuration - Update with your config
+        const firebaseConfig = {
+            apiKey: "{{ settings.firebase_api_key }}",
+            authDomain: "{{ settings.firebase_auth_domain }}",
+            projectId: "{{ settings.firebase_project_id }}",
+            storageBucket: "{{ settings.firebase_storage_bucket }}",
+            messagingSenderId: "{{ settings.firebase_messaging_sender_id }}",
+            appId: "{{ settings.firebase_app_id }}"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Survey configuration
+        const surveyConfig = {
+            surveyId: "{{ survey_id }}",
+            language: "{{ language }}",
+            sessionId: "{{ session_id }}",
+            userId: "{{ user_id }}"
+        };
+        
+        // Load survey statistics
+        async function loadSurveyStats() {
+            try {
+                const responsesQuery = query(
+                    collection(db, 'responses'),
+                    where('survey_id', '==', surveyConfig.surveyId),
+                    where('completed', '==', true)
+                );
+                
+                const responsesSnapshot = await getDocs(responsesQuery);
+                const responseCount = responsesSnapshot.size;
+                
+                // Update response count with animation
+                animateNumber('response-count', responseCount);
+                
+            } catch (error) {
+                console.error('Error loading survey stats:', error);
+                document.getElementById('response-count').textContent = '1+';
+            }
+        }
+        
+        // Animate number counting
+        function animateNumber(elementId, targetNumber) {
+            const element = document.getElementById(elementId);
+            const duration = 2000; // 2 seconds
+            const startTime = performance.now();
+            const startNumber = 0;
+            
+            function updateNumber(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Eased progress for smooth animation
+                const easedProgress = 1 - Math.pow(1 - progress, 3);
+                const currentNumber = Math.floor(startNumber + (targetNumber - startNumber) * easedProgress);
+                
+                element.textContent = currentNumber.toLocaleString();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateNumber);
+                }
+            }
+            
+            requestAnimationFrame(updateNumber);
+        }
+        
+        // Initialize statistics loading
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSurveyStats();
+        });
+        
+        // Add some interactive effects
+        document.querySelectorAll('.btn-primary, .btn-secondary').forEach(button => {
+            button.addEventListener('mousedown', function() {
+                this.style.transform = 'translateY(-1px)';
+            });
+            
+            button.addEventListener('mouseup', function() {
+                this.style.transform = 'translateY(-3px)';
+            });
+        });
+        
+        // Track analytics
+        if (window.gtag) {
+            gtag('event', 'survey_completed', {
+                'survey_id': surveyConfig.surveyId,
+                'session_id': surveyConfig.sessionId,
+                'language': surveyConfig.language
+            });
+        }
+    </script>
+    
+    <!-- Auto-redirect after delay (optional) -->
+    {% if settings.auto_redirect_delay %}
+    <script>
+        setTimeout(() => {
+            if (confirm('{{ case language when "es" then "¿Desea volver a la tienda?" when "fr" then "Voulez-vous retourner au magasin?" else "Would you like to return to the store?" endcase }}')) {
+                window.location.href = '{{ shop.url }}';
+            }
+        }, {{ settings.auto_redirect_delay | default: 30000 }});
+    </script>
+    {% endif %}
+</body>
+</html>
