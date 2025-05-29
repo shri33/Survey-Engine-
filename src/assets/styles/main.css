@@ -1,0 +1,288 @@
+/* src/assets/styles/main.css */
+
+/* Custom variables */
+:root {
+  --primary-color: #3273dc;
+  --success-color: #48c774;
+  --danger-color: #f14668;
+  --warning-color: #ffdd57;
+  --light-color: #f5f5f5;
+  --dark-color: #363636;
+  --border-radius: 6px;
+  --box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0px 0 1px rgba(10, 10, 10, 0.02);
+}
+
+/* Global styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--light-color);
+  min-height: 100vh;
+}
+
+/* Loading animation */
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Survey specific styles */
+.survey-container {
+  min-height: 100vh;
+  padding: 2rem 0;
+}
+
+.survey-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.survey-header .title {
+  color: var(--dark-color);
+  margin-bottom: 0.5rem;
+}
+
+.survey-header .subtitle {
+  color: #666;
+  font-weight: 400;
+}
+
+.progress-container {
+  margin-top: 1.5rem;
+}
+
+.progress-container .progress {
+  height: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Question styles */
+.question-container {
+  margin: 2rem 0;
+  min-height: 200px;
+}
+
+.question-component {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.field .label {
+  font-weight: 600;
+  color: var(--dark-color);
+  margin-bottom: 0.75rem;
+}
+
+.field .control {
+  position: relative;
+}
+
+.field .help {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.field .help.is-danger {
+  color: var(--danger-color);
+}
+
+/* Input styles */
+.input, .textarea, .select select {
+  border-radius: var(--border-radius);
+  border: 1px solid #dbdbdb;
+  transition: all 0.2s ease;
+}
+
+.input:focus, .textarea:focus, .select select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25);
+}
+
+.input.is-danger, .textarea.is-danger, .select select.is-danger {
+  border-color: var(--danger-color);
+}
+
+.input.is-danger:focus, .textarea.is-danger:focus, .select select.is-danger:focus {
+  box-shadow: 0 0 0 0.125em rgba(241, 70, 104, 0.25);
+}
+
+/* Checkbox styles */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  border: 1px solid #e8e8e8;
+  border-radius: var(--border-radius);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.checkbox-item:hover {
+  background-color: #f8f9fa;
+  border-color: var(--primary-color);
+}
+
+.checkbox-item.is-selected {
+  background-color: rgba(50, 115, 220, 0.05);
+  border-color: var(--primary-color);
+}
+
+.checkbox-item input[type="checkbox"] {
+  margin-right: 0.75rem;
+  transform: scale(1.2);
+}
+
+/* Navigation styles */
+.survey-navigation {
+  border-top: 1px solid #e8e8e8;
+  padding-top: 1.5rem;
+}
+
+.survey-navigation .buttons {
+  gap: 1rem;
+}
+
+.survey-navigation .button {
+  min-width: 120px;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.survey-navigation .button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--box-shadow);
+}
+
+/* Landing page styles */
+.landing-hero {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #667eea 100%);
+  color: white;
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.landing-hero .title {
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.landing-hero .subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.landing-content {
+  padding: 3rem 0;
+}
+
+.feature-list {
+  text-align: left;
+}
+
+.feature-list .icon {
+  color: var(--success-color);
+  margin-right: 0.5rem;
+}
+
+/* Thank you page styles */
+.thank-you-content {
+  text-align: center;
+  padding: 4rem 0;
+}
+
+.thank-you-icon {
+  font-size: 4rem;
+  color: var(--success-color);
+  margin-bottom: 2rem;
+}
+
+/* Language selector */
+.language-selector {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.language-selector .select {
+  min-width: 120px;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 768px) {
+  .survey-container {
+    padding: 1rem 0;
+  }
+  
+  .survey-header {
+    padding: 1rem;
+  }
+  
+  .landing-hero {
+    padding: 2rem 0;
+  }
+  
+  .landing-content {
+    padding: 2rem 0;
+  }
+  
+  .survey-navigation .buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .survey-navigation .button {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .input, .textarea, .select select {
+    border-width: 2px;
+  }
+  
+  .button {
+    border-width: 2px;
+  }
+}
+
+/* Focus visible for better keyboard navigation */
+.button:focus-visible,
+.input:focus-visible,
+.textarea:focus-visible,
+.select select:focus-visible {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 2px;
+}

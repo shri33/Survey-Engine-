@@ -1,0 +1,322 @@
+<!-- shopify-templates/survey-landing.liquid -->
+<!DOCTYPE html>
+<html lang="{{ request.locale.iso_code }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ page_title | default: shop.name }}</title>
+    
+    <!-- Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        .landing-hero {
+            background: linear-gradient(135deg, #3273dc 0%, #667eea 100%);
+            color: white;
+            padding: 4rem 0;
+        }
+        .feature-list .icon {
+            color: #48c774;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <section class="hero is-primary landing-hero">
+        <div class="hero-body">
+            <div class="container has-text-centered">
+                <h1 class="title is-1">
+                    {% if request.locale.iso_code == 'es' %}
+                        Encuesta de Satisfacción del Cliente
+                    {% else %}
+                        Customer Satisfaction Survey
+                    {% endif %}
+                </h1>
+                <h2 class="subtitle is-4">
+                    {% if request.locale.iso_code == 'es' %}
+                        Tu opinión nos ayuda a mejorar nuestros productos y servicios
+                    {% else %}
+                        Your feedback helps us improve our products and services
+                    {% endif %}
+                </h2>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-8">
+                    <div class="box">
+                        <div class="content is-medium">
+                            <h3 class="title is-4">
+                                {% if request.locale.iso_code == 'es' %}
+                                    Antes de comenzar
+                                {% else %}
+                                    Before You Begin
+                                {% endif %}
+                            </h3>
+                            
+                            <ul class="feature-list">
+                                <li>
+                                    <span class="icon">
+                                        <i class="fas fa-clock"></i>
+                                    </span>
+                                    {% if request.locale.iso_code == 'es' %}
+                                        Esta encuesta toma aproximadamente 3-5 minutos
+                                    {% else %}
+                                        This survey takes approximately 3-5 minutes
+                                    {% endif %}
+                                </li>
+                                <li>
+                                    <span class="icon">
+                                        <i class="fas fa-save"></i>
+                                    </span>
+                                    {% if request.locale.iso_code == 'es' %}
+                                        Tus respuestas se guardan automáticamente
+                                    {% else %}
+                                        Your responses are automatically saved
+                                    {% endif %}
+                                </li>
+                                <li>
+                                    <span class="icon">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </span>
+                                    {% if request.locale.iso_code == 'es' %}
+                                        Tu información es completamente confidencial
+                                    {% else %}
+                                        Your information is completely confidential
+                                    {% endif %}
+                                </li>
+                                <li>
+                                    <span class="icon">
+                                        <i class="fas fa-mobile-alt"></i>
+                                    </span>
+                                    {% if request.locale.iso_code == 'es' %}
+                                        Funciona perfectamente en dispositivos móviles
+                                    {% else %}
+                                        Works perfectly on mobile devices
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="has-text-centered mt-5">
+                            <a href="/pages/survey-form?{{ request.query_string }}" class="button is-primary is-large">
+                                <span class="icon">
+                                    <i class="fas fa-play"></i>
+                                </span>
+                                <span>
+                                    {% if request.locale.iso_code == 'es' %}
+                                        Comenzar Encuesta
+                                    {% else %}
+                                        Start Survey
+                                    {% endif %}
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
+
+<!-- shopify-templates/survey-form.liquid -->
+<!DOCTYPE html>
+<html lang="{{ request.locale.iso_code }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Survey - {{ shop.name }}</title>
+    
+    <!-- Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div id="survey-app">
+        <!-- Vue.js app will mount here -->
+        <div class="section">
+            <div class="container">
+                <div class="columns is-centered">
+                    <div class="column is-8">
+                        <div class="box has-text-centered">
+                            <div class="loader"></div>
+                            <p>Loading survey...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vue.js and Survey App -->
+    <script type="module">
+        // Survey configuration from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        window.surveyConfig = {
+            surveyId: urlParams.get('survey') || 'default-survey',
+            sessionId: urlParams.get('session') || 'session-' + Date.now(),
+            language: urlParams.get('lang') || '{{ request.locale.iso_code }}',
+            shopDomain: '{{ shop.domain }}'
+        };
+    </script>
+    
+    <!-- Your compiled Vue.js survey app -->
+    <script type="module" src="{{ 'survey-app.js' | asset_url }}"></script>
+    
+    <style>
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3273dc;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</body>
+</html>
+
+<!-- shopify-templates/survey-thank-you.liquid -->
+<!DOCTYPE html>
+<html lang="{{ request.locale.iso_code }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Thank You - {{ shop.name }}</title>
+    
+    <!-- Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        .thank-you-content {
+            text-align: center;
+            padding: 4rem 0;
+        }
+        .thank-you-icon {
+            font-size: 4rem;
+            color: #48c774;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <section class="section thank-you-content">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-8">
+                    <div class="box">
+                        <div class="thank-you-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        
+                        <h1 class="title is-2">
+                            {% if request.locale.iso_code == 'es' %}
+                                ¡Gracias por tu tiempo!
+                            {% else %}
+                                Thank You for Your Time!
+                            {% endif %}
+                        </h1>
+                        
+                        <p class="subtitle is-4">
+                            {% if request.locale.iso_code == 'es' %}
+                                Tu opinión es muy valiosa para nosotros y nos ayuda a mejorar continuamente.
+                            {% else %}
+                                Your feedback is invaluable to us and helps us improve continuously.
+                            {% endif %}
+                        </p>
+                        
+                        <div class="content is-medium mt-5">
+                            <p>
+                                {% if request.locale.iso_code == 'es' %}
+                                    Tus respuestas han sido registradas exitosamente. Revisaremos cuidadosamente cada comentario.
+                                {% else %}
+                                    Your responses have been successfully recorded. We'll carefully review every comment.
+                                {% endif %}
+                            </p>
+                        </div>
+                        
+                        <div class="buttons is-centered mt-6">
+                            <a href="{{ shop.url }}" class="button is-primary is-large">
+                                <span class="icon">
+                                    <i class="fas fa-home"></i>
+                                </span>
+                                <span>
+                                    {% if request.locale.iso_code == 'es' %}
+                                        Regresar a la Tienda
+                                    {% else %}
+                                        Return to Shop
+                                    {% endif %}
+                                </span>
+                            </a>
+                            
+                            <a href="{{ shop.url }}/pages/contact" class="button is-light is-large">
+                                <span class="icon">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <span>
+                                    {% if request.locale.iso_code == 'es' %}
+                                        Contáctanos
+                                    {% else %}
+                                        Contact Us
+                                    {% endif %}
+                                </span>
+                            </a>
+                        </div>
+                        
+                        {% comment %} Optional: Social sharing {% endcomment %}
+                        <div class="content has-text-centered mt-6">
+                            <p class="is-size-6 has-text-grey">
+                                {% if request.locale.iso_code == 'es' %}
+                                    ¿Te gustó nuestra tienda? ¡Compártela con tus amigos!
+                                {% else %}
+                                    Enjoyed shopping with us? Share with your friends!
+                                {% endif %}
+                            </p>
+                            
+                            <div class="buttons is-centered mt-3">
+                                <a href="https://www.facebook.com/sharer/sharer.php?u={{ shop.url | url_encode }}" 
+                                   target="_blank" 
+                                   class="button is-facebook">
+                                    <span class="icon">
+                                        <i class="fab fa-facebook-f"></i>
+                                    </span>
+                                </a>
+                                
+                                <a href="https://twitter.com/intent/tweet?url={{ shop.url | url_encode }}&text={{ shop.name | url_encode }}" 
+                                   target="_blank" 
+                                   class="button is-twitter">
+                                    <span class="icon">
+                                        <i class="fab fa-twitter"></i>
+                                    </span>
+                                </a>
+                                
+                                <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ shop.url | url_encode }}" 
+                                   target="_blank" 
+                                   class="button is-linkedin">
+                                    <span class="icon">
+                                        <i class="fab fa-linkedin-in"></i>
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

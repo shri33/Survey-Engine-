@@ -1,0 +1,145 @@
+// firebase/firebase.json
+{
+  "hosting": {
+    "public": "dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000"
+          }
+        ]
+      }
+    ]
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs18"
+  }
+}
+
+// firebase/firestore.rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Surveys collection - read only for authenticated users
+    match /surveys/{surveyId} {
+      allow read: if true; // Public read access for surveys
+      allow write: if false; // Only admin can create/update surveys
+    }
+    
+    // Questions collection - read only for authenticated users
+    match /questions/{questionId} {
+      allow read: if true; // Public read access for questions
+      allow write: if false; // Only admin can create/update questions
+    }
+    
+    // Responses collection - allow create for everyone, read/update for owner
+    match /responses/{responseId} {
+      allow create: if true; // Anyone can create a response
+      allow read, update: if request.auth != null && 
+        (request.auth.uid == resource.data.user_id || 
+         request.auth.token.admin == true);
+      allow delete: if request.auth != null && 
+        request.auth.token.admin == true;
+    }
+    
+    // Answers collection - allow create for everyone, read for response owner
+    match /answers/{answerId} {
+      allow create: if true; // Anyone can create an answer
+      allow read: if request.auth != null && 
+        (request.auth.uid == get(/databases/$(database)/documents/responses/$(resource.data.response_id)).data.user_id ||
+         request.auth.token.admin == true);
+      allow update: if request.auth != null && 
+        request.auth.uid == get(/databases/$(database)/documents/responses/$(resource.data.response_id)).data.user_id;
+      allow delete: if request.auth != null && 
+        request.auth.token.admin == true;
+    }
+    
+    // Analytics collection - admin only
+    match /analytics/{document=**} {
+      allow read, write: if request.auth != null && 
+        request.auth.token.admin == true;
+    }
+  }
+}
+
+// firebase/firestore.indexes.json
+{
+  "indexes": [
+    {
+      "collectionGroup": "questions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "survey_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "order",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "answers",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "response_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "question_id",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "responses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "survey_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "responses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "session_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
